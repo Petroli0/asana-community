@@ -341,10 +341,17 @@ footer.end .wrap{flex-wrap:wrap}
 <script data-goatcounter="https://ppv.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
 (function(){
-  var path=encodeURIComponent(location.pathname||'/');
+  // GoatCounter кэширует ответ счётчика до 4 часов по адресу запроса.
+  // Меняем параметр start каждые 10 минут (все даты раньше запуска отчёта),
+  // а end — каждый день, чтобы получать свежее число.
+  var now=new Date(), bucket=Math.floor((now.getUTCHours()*60+now.getUTCMinutes())/10);
+  function d(x){return x.toISOString().slice(0,10)}
+  var start=new Date(Date.UTC(2026,0,1)+bucket*864e5), end=new Date(now.getTime()+864e5);
+  var path=encodeURIComponent((location.pathname||'/').replace(/\/+$/,'')||'/');
+  var url='https://ppv.goatcounter.com/counter/'+path+'.json?start='+d(start)+'&end='+d(end);
   function show(n){if(!n)return;document.getElementById('vn').textContent=n;document.getElementById('visits').hidden=false;}
-  fetch('https://ppv.goatcounter.com/counter/'+path+'.json').then(function(r){return r.ok?r.json():null})
-    .then(function(d){if(d)show(d.count_unique||d.count)}).catch(function(){});
+  fetch(url).then(function(r){return r.ok?r.json():null})
+    .then(function(x){if(x)show(x.count_unique||x.count)}).catch(function(){});
 })();
 </script>
 </body>
